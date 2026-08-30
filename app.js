@@ -14,7 +14,7 @@ const CONFIG = {
   DIGITAL_RECOVERY_RATE: 0.20,
   UNKNOWN_MISSED_CALL_RATE: 0.10,
   UNKNOWN_CONVERSION_RATE: 0.35,
-  WEBHOOK_URL: "",
+  WEBHOOK_URL: "https://api.gohighlevel.com/v1/contacts",
   // Enlace público de reservas (Google Calendar — Horario de citas)
   CALENDAR_URL: "https://calendar.app.google/hgJYdqez5Kvft6Ao8",
   WHATSAPP_URL: "",
