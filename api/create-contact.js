@@ -5,7 +5,7 @@
  */
 
 const GHL_API_URL = "https://services.leadconnectorhq.com/contacts/";
-const GHL_TOKEN = "pit-032c3b02-5920-4b6e-a59c-d1e61bd4d407";
+const GHL_TOKEN = "pit-d2a856b1-013d-4e66-80cf-973084ce6353";
 const GHL_VERSION = "2021-07-28";
 
 module.exports = async (req, res) => {
