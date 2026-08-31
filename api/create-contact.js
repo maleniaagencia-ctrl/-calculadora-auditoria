@@ -5,11 +5,10 @@
  */
 
 const GHL_API_URL = "https://services.leadconnectorhq.com/contacts/";
-const GHL_LOCATION_ID = "i5212YWibYHijuQUVDQL";
 const GHL_TOKEN = "pit-032c3b02-5920-4b6e-a59c-d1e61bd4d407";
 const GHL_VERSION = "2021-07-28";
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   // Solo permitir POST
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -34,17 +33,10 @@ export default async function handler(req, res) {
       email: data.email,
       phone: data.phone,
       source: "calculadora_malenia",
-      tags: ["lead_magnet"],
-      customFields: [
-        { id: "clinic", value: data.clinic },
-        { id: "city", value: data.city },
-        { id: "employees", value: data.employees },
-        { id: "role", value: data.role },
-        { id: "lostCalls", value: String(data.calculator.lostCalls) },
-        { id: "recoverable", value: String(data.calculator.recoverable) },
-        { id: "potentialMoney", value: String(data.calculator.money) }
-      ]
+      tags: ["lead_magnet"]
     };
+
+    console.log("Enviando a GHL:", ghlPayload);
 
     // Hacer POST a GHL
     const ghlResponse = await fetch(GHL_API_URL, {
@@ -57,29 +49,38 @@ export default async function handler(req, res) {
       body: JSON.stringify(ghlPayload)
     });
 
-    const ghlData = await ghlResponse.json();
+    console.log("Status GHL:", ghlResponse.status);
+    const responseText = await ghlResponse.text();
 
-    // Si GHL devuelve un error
+    let ghlData;
+    try {
+      ghlData = JSON.parse(responseText);
+    } catch (e) {
+      console.error("GHL returned non-JSON:", responseText);
+      return res.status(500).json({
+        error: "GHL API returned invalid response",
+        status: ghlResponse.status
+      });
+    }
+
     if (!ghlResponse.ok) {
-      console.error("GHL API Error:", ghlResponse.status, ghlData);
+      console.error("GHL Error:", ghlData);
       return res.status(ghlResponse.status).json({
-        error: "Failed to create contact in GHL",
+        error: "Failed to create contact",
         details: ghlData
       });
     }
 
-    // Éxito
     return res.status(200).json({
       success: true,
-      contactId: ghlData.id || ghlData.contactId,
-      message: "Contact created successfully"
+      message: "Contact created"
     });
 
   } catch (error) {
-    console.error("Error in create-contact function:", error);
+    console.error("Error:", error.message);
     return res.status(500).json({
-      error: "Internal server error",
+      error: "Server error",
       message: error.message
     });
   }
-}
+};
