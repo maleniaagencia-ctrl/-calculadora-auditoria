@@ -1,10 +1,5 @@
 /*
   MALENIA — CALCULADORA DE PACIENTES PERDIDOS
-  Configuración rápida:
-  - RECOVERY_RATE: porcentaje estimado de oportunidades que podrían recuperarse.
-  - CALL_NEW_PATIENT_RATE: proporción conservadora de llamadas perdidas que se consideran relacionadas con nuevos pacientes.
-  - DIGITAL_RECOVERY_RATE: proporción conservadora de leads digitales no convertidos que podrían ser recuperables.
-  - CALENDAR_URL / WHATSAPP_URL: CTAs finales.
 */
 
 const CONFIG = {
@@ -25,9 +20,7 @@ const state = {
   channels: [],
   leads: 0,
   conversion: 0,
-  patientValue: 0,
-  manualCalls: null,
-  manualValue: null
+  patientValue: 0
 };
 
 const steps = [
@@ -35,18 +28,14 @@ const steps = [
     icon:"☎", title:"¿Cuántas llamadas recibe aproximadamente tu clínica cada mes?",
     help:"Elige un rango o introduce una cifra exacta.",
     render(){
-      return optionGrid([
-        ["<100",75],["100–250",175],["250–500",375],["500–1.000",750],["1.000+",1200]
-      ], state.calls, "calls", true);
+      return optionGrid([["<100",75],["100–250",175],["250–500",375],["500–1.000",750],["1.000+",1200]], state.calls, "calls", true);
     }
   },
   {
     icon:"◉", title:"¿Qué porcentaje aproximado de llamadas no podéis atender?",
     help:"Si no lo sabes, usaremos una estimación conservadora.",
     render(){
-      return optionGrid([
-        ["<5%",0.04],["5–10%",0.075],["10–20%",0.15],["20–30%",0.25],[">30%",0.35],["No lo sabemos",CONFIG.UNKNOWN_MISSED_CALL_RATE]
-      ], state.missedRate, "missedRate");
+      return optionGrid([["<5%",0.04],["5–10%",0.075],["10–20%",0.15],["20–30%",0.25],[">30%",0.35],["No lo sabemos",CONFIG.UNKNOWN_MISSED_CALL_RATE]], state.missedRate, "missedRate");
     }
   },
   {
@@ -54,9 +43,7 @@ const steps = [
     help:"Selecciona todos los que correspondan.",
     render(){
       const items = ["WhatsApp","Instagram","Facebook","Email","Web","Llamadas","Otros"];
-      return `<div class="channel-grid">${items.map(x=>`<label class="channel ${state.channels.includes(x)?"selected":""}">
-        <input type="checkbox" value="${x}" ${state.channels.includes(x)?"checked":""}> ${x}</label>`).join("")}</div>
-        <button class="primary-btn continue" id="continueChannels">CONTINUAR <span>→</span></button>`;
+      return `<div class="channel-grid">${items.map(x=>`<label class="channel ${state.channels.includes(x)?"selected":""}"><input type="checkbox" value="${x}" ${state.channels.includes(x)?"checked":""}> ${x}</label>`).join("")}</div><button class="primary-btn continue" id="continueChannels">CONTINUAR <span>→</span></button>`;
     }
   },
   {
@@ -88,9 +75,7 @@ function optionGrid(items, current, key, manual=false){
     html += `<button class="option ${current===value?"selected":""}" data-key="${key}" data-value="${value}">${label}</button>`;
   });
   html += `</div>`;
-  if(manual){
-    html += `<div class="manual"><input id="manual-${key}" type="number" min="1" placeholder="O introduce una cifra exacta"></div>`;
-  }
+  if(manual) html += `<div class="manual"><input id="manual-${key}" type="number" min="1" placeholder="O introduce una cifra exacta"></div>`;
   html += `<button class="primary-btn continue" id="continueBtn" disabled>CONTINUAR <span>→</span></button>`;
   return html;
 }
@@ -130,138 +115,4 @@ function bindStep(){
   });
   const manualCalls=$("manual-calls");
   if(manualCalls) manualCalls.addEventListener("input",()=>{
-    if(manualCalls.value){state.calls=Number(manualCalls.value); document.querySelectorAll('.option[data-key="calls"]').forEach(x=>x.classList.remove("selected"));}
-    $("continueBtn").disabled=!(state.calls>0);
-  });
-  const manualValue=$("manual-patientValue");
-  if(manualValue) manualValue.addEventListener("input",()=>{
-    if(manualValue.value){state.patientValue=Number(manualValue.value); document.querySelectorAll('.option[data-key="patientValue"]').forEach(x=>x.classList.remove("selected"));}
-    $("continueBtn").disabled=!(state.patientValue>0);
-  });
-  const continueBtn=$("continueBtn");
-  if(continueBtn) continueBtn.addEventListener("click",next);
-  const continueChannels=$("continueChannels");
-  if(continueChannels) continueChannels.addEventListener("click",()=>{
-    state.channels=[...document.querySelectorAll('.channel input:checked')].map(x=>x.value);
-    next();
-  });
-}
-
-function next(){
-  if(state.step < steps.length-1){
-    state.step++;
-    renderStep();
-    track(`question_${state.step}_completed`);
-  } else {
-    calculate();
-  }
-}
-
-function calculate(){
-  const lostCalls=Math.round(state.calls*state.missedRate);
-  const callOpportunities=Math.round(lostCalls*CONFIG.CALL_NEW_PATIENT_RATE);
-  const unconvertedDigital=Math.round(state.leads*(1-state.conversion));
-  const digitalRecoverable=Math.round(unconvertedDigital*CONFIG.DIGITAL_RECOVERY_RATE);
-  const recoverable=Math.max(0,Math.round((callOpportunities+digitalRecoverable)*CONFIG.RECOVERY_RATE));
-  const money=Math.round(recoverable*state.patientValue);
-  const attended=Math.max(0,state.leads-unconvertedDigital);
-
-  state.result={lostCalls,callOpportunities,digitalRecoverable,recoverable,money,attended};
-  $("calculator").classList.add("hidden");
-  $("results").classList.remove("hidden");
-  renderResults();
-  track("calculator_completed");
-  track("result_shown");
-  window.scrollTo({top:0,behavior:"smooth"});
-}
-
-function renderResults(){
-  const r=state.result;
-  animateNumber($("lostCalls"),r.lostCalls);
-  animateNumber($("recoverable"),r.recoverable);
-  animateNumber($("potentialMoney"),r.money, " €");
-  $("barLeadsVal").textContent=r.attended + (r.recoverable||0);
-  $("barAttendedVal").textContent=r.attended;
-  $("barRecoverableVal").textContent=r.recoverable;
-  const max=Math.max(1,r.attended,r.recoverable,r.attended+r.recoverable);
-  setTimeout(()=>{
-    $("barLeads").style.width=`${Math.min(100,((r.attended+r.recoverable)/max)*100)}%`;
-    $("barAttended").style.width=`${Math.min(100,(r.attended/max)*100)}%`;
-    $("barRecoverable").style.width=`${Math.min(100,(r.recoverable/max)*100)}%`;
-  },100);
-  let msg;
-  if(r.money>5000) msg=`Tu estimación muestra un <strong>potencial económico relevante</strong>. Merece la pena analizar cómo se están gestionando las llamadas, consultas y seguimientos que llegan a tu clínica.`;
-  else if(r.money>=1000) msg=`Hay un <strong>margen claro de mejora</strong> en la gestión de oportunidades. Automatizar parte de la atención y el seguimiento puede ayudarte a responder antes y liberar tiempo del equipo.`;
-  else msg=`El impacto económico directo parece más contenido, pero todavía puede existir <strong>un ahorro importante de tiempo</strong> y una mejora de productividad al automatizar tareas repetitivas.`;
-  $("insightText").innerHTML=`<p>${msg}</p><p>La oportunidad no está en sustituir a tu equipo, sino en permitir que un empleado digital se encargue de tareas repetitivas mientras vuestro equipo se concentra en los pacientes.</p>`;
-}
-
-function animateNumber(el,target,suffix=""){
-  const start=Number(el.textContent.replace(/[^\d]/g,""))||0;
-  const duration=750; const t0=performance.now();
-  function tick(t){
-    const p=Math.min(1,(t-t0)/duration);
-    const eased=1-Math.pow(1-p,3);
-    el.textContent=Math.round(start+(target-start)*eased).toLocaleString("es-ES")+suffix;
-    if(p<1) requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
-}
-
-$("leadForm").addEventListener("submit", async e=>{
-  e.preventDefault();
-  const form=e.currentTarget;
-  const status=$("formStatus");
-  if(!form.checkValidity()){form.reportValidity();return;}
-  const data=Object.fromEntries(new FormData(form).entries());
-  data.consent=Boolean(form.consent.checked);
-  data.calculator={
-    ...state.result,
-    calls:state.calls,
-    missedRate:state.missedRate,
-    channels:state.channels,
-    leads:state.leads,
-    conversion:state.conversion,
-    patientValue:state.patientValue
-  };
-  data.source="instagram_calculator";
-  data.date=new Date().toISOString();
-  data.utm=Object.fromEntries(new URLSearchParams(location.search));
-  status.textContent="Enviando…";
-  track("lead_submit_start");
-  try{
-    const storageKey = `lead_${data.email}_${Date.now()}`;
-    localStorage.setItem(storageKey, JSON.stringify(data));
-    console.log("Datos guardados localmente:", storageKey, data);
-    
-    status.textContent="";
-    $("results").classList.add("hidden");
-    $("success").classList.remove("hidden");
-    configureFinalLinks(data);
-    track("lead_submitted");
-    window.scrollTo({top:0,behavior:"smooth"});
-  }catch(err){
-    console.error("Error:", err);
-    status.textContent="No hemos podido enviar el formulario. Revisa tu conexión o inténtalo de nuevo.";
-  }
-});
-
-function configureFinalLinks(data){
-  const msg=encodeURIComponent(`Hola, soy ${data.name} de ${data.clinic}. He realizado la calculadora de MalenIA y me gustaría analizar cómo reducir las oportunidades que estoy perdiendo.`);
-  const whatsappUrl = CONFIG.WHATSAPP_URL || `https://wa.me/?text=${msg}`;
-  const calendarUrl = CONFIG.CALENDAR_URL || whatsappUrl;
-  if(!CONFIG.CALENDAR_URL){
-    console.warn("MalenIA: CONFIG.CALENDAR_URL no está configurado. El botón 'Agendar auditoría' usa WhatsApp como fallback temporal.");
-  }
-  $("whatsappBtn").href=whatsappUrl;
-  $("calendarBtn").href=calendarUrl;
-  $("whatsappBtn").addEventListener("click",()=>track("whatsapp_clicked"),{once:true});
-  $("calendarBtn").addEventListener("click",()=>track("calendar_clicked"),{once:true});
-}
-
-function track(eventName){
-  window.dataLayer=window.dataLayer||[];
-  window.dataLayer.push({event:eventName,brand:"MalenIA",tool:"calculadora_pacientes_perdidos"});
-  if(typeof window.gtag==="function") window.gtag("event",eventName);
-  if(typeof window.fbq==="function") window.fbq("trackCustom",eventName);
-}
+    if(manualCalls.value){state.calls=Number(manualCalls.value); document.querySelectorAll('.option[data-key="calls"]').forEach(x=>
