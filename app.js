@@ -13,7 +13,6 @@ const CONFIG = {
   DIGITAL_RECOVERY_RATE: 0.20,
   UNKNOWN_MISSED_CALL_RATE: 0.10,
   UNKNOWN_CONVERSION_RATE: 0.35,
-  // Enlace público de reservas (Google Calendar)
   CALENDAR_URL: "https://calendar.app.google/hgJYdqez5Kvft6Ao8",
   WHATSAPP_URL: "",
   BRAND: "MalenIA"
@@ -231,22 +230,9 @@ $("leadForm").addEventListener("submit", async e=>{
   status.textContent="Enviando…";
   track("lead_submit_start");
   try{
-    // Enviar a la Vercel Function (backend proxy)
-    const response = await fetch("/api/create-contact", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(data)
-    });
-    
-    const result = await response.json();
-    
-    if(!response.ok) {
-      throw new Error(`API error: ${result.error || response.statusText}`);
-    }
-    
-    console.log("Contacto creado en GHL:", result);
+    const storageKey = `lead_${data.email}_${Date.now()}`;
+    localStorage.setItem(storageKey, JSON.stringify(data));
+    console.log("Datos guardados localmente:", storageKey, data);
     
     status.textContent="";
     $("results").classList.add("hidden");
@@ -255,7 +241,7 @@ $("leadForm").addEventListener("submit", async e=>{
     track("lead_submitted");
     window.scrollTo({top:0,behavior:"smooth"});
   }catch(err){
-    console.error("Error enviando a GHL:", err);
+    console.error("Error:", err);
     status.textContent="No hemos podido enviar el formulario. Revisa tu conexión o inténtalo de nuevo.";
   }
 });
@@ -265,7 +251,7 @@ function configureFinalLinks(data){
   const whatsappUrl = CONFIG.WHATSAPP_URL || `https://wa.me/?text=${msg}`;
   const calendarUrl = CONFIG.CALENDAR_URL || whatsappUrl;
   if(!CONFIG.CALENDAR_URL){
-    console.warn("MalenIA: CONFIG.CALENDAR_URL no está configurado. El botón 'Agendar auditoría' usa WhatsApp como fallback temporal. Añade tu enlace de Calendly/calendario en CONFIG.CALENDAR_URL.");
+    console.warn("MalenIA: CONFIG.CALENDAR_URL no está configurado. El botón 'Agendar auditoría' usa WhatsApp como fallback temporal.");
   }
   $("whatsappBtn").href=whatsappUrl;
   $("calendarBtn").href=calendarUrl;
