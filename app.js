@@ -4,7 +4,6 @@
   - RECOVERY_RATE: porcentaje estimado de oportunidades que podrían recuperarse.
   - CALL_NEW_PATIENT_RATE: proporción conservadora de llamadas perdidas que se consideran relacionadas con nuevos pacientes.
   - DIGITAL_RECOVERY_RATE: proporción conservadora de leads digitales no convertidos que podrían ser recuperables.
-  - WEBHOOK_URL: endpoint para CRM/automatización.
   - CALENDAR_URL / WHATSAPP_URL: CTAs finales.
 */
 
@@ -14,12 +13,7 @@ const CONFIG = {
   DIGITAL_RECOVERY_RATE: 0.20,
   UNKNOWN_MISSED_CALL_RATE: 0.10,
   UNKNOWN_CONVERSION_RATE: 0.35,
-  // GHL API v2.0 Configuration
-  GHL_API_URL: "https://services.leadconnectorhq.com/contacts/",
-  GHL_LOCATION_ID: "i5212YWibYHijuQUVDQL",
-  GHL_TOKEN: "pit-032c3b02-5920-4b6e-a59c-d1e61bd4d407",
-  GHL_VERSION: "2021-07-28",
-  // Enlace público de reservas (Google Calendar — Horario de citas)
+  // Enlace público de reservas (Google Calendar)
   CALENDAR_URL: "https://calendar.app.google/hgJYdqez5Kvft6Ao8",
   WHATSAPP_URL: "",
   BRAND: "MalenIA"
@@ -237,45 +231,22 @@ $("leadForm").addEventListener("submit", async e=>{
   status.textContent="Enviando…";
   track("lead_submit_start");
   try{
-    // Crear contacto en GHL API v2.0
-    const [firstName, ...lastNameParts] = data.name.split(" ");
-    const lastName = lastNameParts.join(" ") || "";
-    
-    const ghlPayload = {
-      firstName: firstName,
-      lastName: lastName,
-      email: data.email,
-      phone: data.phone,
-      source: "calculadora_malenia",
-      tags: ["lead_magnet"],
-      customFields: [
-        { key: "clinic", value: data.clinic },
-        { key: "city", value: data.city },
-        { key: "employees", value: data.employees },
-        { key: "role", value: data.role },
-        { key: "lostCalls", value: String(state.result.lostCalls) },
-        { key: "recoverable", value: String(state.result.recoverable) },
-        { key: "potentialMoney", value: String(state.result.money) },
-        { key: "calculator_data", value: JSON.stringify(data.calculator) }
-      ]
-    };
-    
-    const response = await fetch(CONFIG.GHL_API_URL, {
+    // Enviar a la Vercel Function (backend proxy)
+    const response = await fetch("/api/create-contact", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": CONFIG.GHL_TOKEN,
-        "Version": CONFIG.GHL_VERSION
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(ghlPayload)
+      body: JSON.stringify(data)
     });
     
+    const result = await response.json();
+    
     if(!response.ok) {
-      throw new Error(`GHL API error: ${response.status} ${response.statusText}`);
+      throw new Error(`API error: ${result.error || response.statusText}`);
     }
     
-    const responseData = await response.json();
-    console.log("Contacto creado en GHL:", responseData);
+    console.log("Contacto creado en GHL:", result);
     
     status.textContent="";
     $("results").classList.add("hidden");
@@ -292,8 +263,6 @@ $("leadForm").addEventListener("submit", async e=>{
 function configureFinalLinks(data){
   const msg=encodeURIComponent(`Hola, soy ${data.name} de ${data.clinic}. He realizado la calculadora de MalenIA y me gustaría analizar cómo reducir las oportunidades que estoy perdiendo.`);
   const whatsappUrl = CONFIG.WHATSAPP_URL || `https://wa.me/?text=${msg}`;
-  // Si no hay calendario configurado todavía, evitamos un enlace muerto ("#")
-  // y lo dejamos apuntando a WhatsApp mientras tanto.
   const calendarUrl = CONFIG.CALENDAR_URL || whatsappUrl;
   if(!CONFIG.CALENDAR_URL){
     console.warn("MalenIA: CONFIG.CALENDAR_URL no está configurado. El botón 'Agendar auditoría' usa WhatsApp como fallback temporal. Añade tu enlace de Calendly/calendario en CONFIG.CALENDAR_URL.");
