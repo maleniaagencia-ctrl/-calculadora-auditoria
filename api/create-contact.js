@@ -4,7 +4,7 @@
  * POST /api/create-contact
  */
 
-const GHL_API_URL = "https://services.leadconnectorhq.com/v1/contacts/";
+const GHL_API_URL = "https://services.leadconnectorhq.com/contacts/";
 const GHL_TOKEN = "pit-d2a856b1-013d-4e66-80cf-973084ce6353";
 const GHL_VERSION = "2021-07-28";
 
@@ -43,7 +43,7 @@ module.exports = async (req, res) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${GHL_TOKEN}`,
+        "Authorization": GHL_TOKEN,
         "Version": GHL_VERSION
       },
       body: JSON.stringify(ghlPayload)
