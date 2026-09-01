@@ -203,7 +203,20 @@ $("leadForm").addEventListener("submit", async e=>{
   const storageKey = `lead_${data.email}_${Date.now()}`;
   localStorage.setItem(storageKey, JSON.stringify(data));
   console.log("✅ Datos guardados en localStorage:", storageKey);
-  
+
+  // Enviar también a GHL vía webhook (backend seguro)
+  try {
+    const response = await fetch("/api/create-contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    const result = await response.json();
+    console.log(response.ok ? "✅ Enviado a GHL:" : "⚠️ GHL no respondió OK:", result);
+  } catch (err) {
+    console.warn("⚠️ No se pudo enviar a GHL (dato ya guardado localmente):", err);
+  }
+
   status.textContent="";
   $("results").classList.add("hidden");
   $("success").classList.remove("hidden");
