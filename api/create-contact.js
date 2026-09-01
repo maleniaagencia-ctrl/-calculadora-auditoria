@@ -22,10 +22,10 @@ module.exports = async function handler(req, res) {
     const lastName = lastNameParts.join(" ") || "";
 
     const webhookPayload = {
-      firstName: firstName,
-      lastName: lastName,
-      email: data.email,
-      phone: data.phone,
+      FirstName: firstName,
+      LastName: lastName,
+      Email: data.email,
+      Phone: data.phone,
       clinic: data.clinic,
       city: data.city || "",
       employees: data.employees || "",
