@@ -5,7 +5,7 @@ const CONFIG = {
   UNKNOWN_MISSED_CALL_RATE: 0.10,
   UNKNOWN_CONVERSION_RATE: 0.35,
   CALENDAR_URL: "https://calendar.app.google/hgJYdqez5Kvft6Ao8",
-  WHATSAPP_URL: "",
+  WHATSAPP_PHONE: "34674433522",
   BRAND: "MalenIA"
 };
 
@@ -226,9 +226,9 @@ $("leadForm").addEventListener("submit", async e=>{
 });
 
 function configureFinalLinks(data){
-  const msg=encodeURIComponent(`Hola, soy ${data.name} de ${data.clinic}. He realizado la calculadora de MalenIA y me gustaría analizar cómo reducir las oportunidades que estoy perdiendo.`);
-  const whatsappUrl = CONFIG.WHATSAPP_URL || `https://wa.me/?text=${msg}`;
-  const calendarUrl = CONFIG.CALENDAR_URL || whatsappUrl;
+  const msg=encodeURIComponent(`Hola, soy ${data.name} de ${data.clinic}. He realizado la calculadora de MalenIA y me gustaría analizar cómo reducir las oportunidades que estoy perdiendo. Estimación de pérdidas: ${state.result.money}€/mes`);
+  const whatsappUrl = `https://wa.me/34674433522?text=${msg}`;
+  const calendarUrl = CONFIG.CALENDAR_URL;
   $("whatsappBtn").href=whatsappUrl;
   $("calendarBtn").href=calendarUrl;
   $("whatsappBtn").addEventListener("click",()=>track("whatsapp_clicked"),{once:true});
