@@ -4,7 +4,7 @@
  * POST /api/create-contact
  */
 
-const GHL_WEBHOOK_URL = "https://services.leadconnectorhq.com/hooks/i5212YWibYHIjuUQVDQL/webhook-trigger/9947d900-e921-44e1-8310-e0eaf7cf36cc";
+const GHL_WEBHOOK_URL = "https://services.leadconnectorhq.com/hooks/i5212YWibYHIjuUQVDQL/webhook-trigger/88faded6-d642-42e4-9fb5-871e2a542664";
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
