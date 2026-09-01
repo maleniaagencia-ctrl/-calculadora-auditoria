@@ -1,14 +1,10 @@
 /**
  * Vercel Serverless Function
- * Actúa como proxy seguro entre la calculadora y GHL API
+ * Envía los datos de la calculadora al Inbound Webhook de GHL
  * POST /api/create-contact
- * Según especificación de soporte GHL (2023-02-21)
  */
 
-const GHL_API_URL = "https://services.leadconnectorhq.com/contacts/";
-const GHL_LOCATION_ID = "i5212YWibYHijuQUVDQL";
-const GHL_TOKEN = "pit-d2a856b1-013d-4e66-80cf-973084ce6353";
-const GHL_VERSION = "2023-02-21";
+const GHL_WEBHOOK_URL = "https://services.leadconnectorhq.com/hooks/i5212YWibYHIjuUQVDQL/webhook-trigger/9947d900-e921-44e1-8310-e0eaf7cf36cc";
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
@@ -25,56 +21,46 @@ module.exports = async function handler(req, res) {
     const [firstName, ...lastNameParts] = data.name.split(" ");
     const lastName = lastNameParts.join(" ") || "";
 
-    const ghlPayload = {
+    const webhookPayload = {
       firstName: firstName,
       lastName: lastName,
       email: data.email,
       phone: data.phone,
-      locationId: GHL_LOCATION_ID,
+      clinic: data.clinic,
+      city: data.city || "",
+      employees: data.employees || "",
+      role: data.role || "",
       source: "calculadora_malenia",
-      tags: ["lead_magnet"]
+      lostCalls: data.calculator?.lostCalls ?? "",
+      recoverable: data.calculator?.recoverable ?? "",
+      potentialMoney: data.calculator?.money ?? "",
+      date: data.date || new Date().toISOString()
     };
 
-    console.log("📤 Enviando a GHL:", JSON.stringify(ghlPayload));
+    console.log("📤 Enviando a GHL Webhook:", JSON.stringify(webhookPayload));
 
-    const ghlResponse = await fetch(GHL_API_URL, {
+    const ghlResponse = await fetch(GHL_WEBHOOK_URL, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${GHL_TOKEN}`,
-        "Version": GHL_VERSION
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(ghlPayload)
+      body: JSON.stringify(webhookPayload)
     });
 
-    console.log("✅ GHL Status:", ghlResponse.status);
+    console.log("✅ GHL Webhook Status:", ghlResponse.status);
     const responseText = await ghlResponse.text();
-    console.log("📦 GHL Response:", responseText);
-
-    let ghlData;
-    try {
-      ghlData = JSON.parse(responseText);
-    } catch (e) {
-      console.error("❌ GHL no devolvió JSON válido:", responseText);
-      return res.status(ghlResponse.status || 500).json({
-        error: "GHL returned invalid response",
-        response: responseText,
-        status: ghlResponse.status
-      });
-    }
+    console.log("📦 GHL Webhook Response:", responseText);
 
     if (!ghlResponse.ok) {
-      console.error("❌ GHL API Error:", ghlResponse.status, ghlData);
       return res.status(ghlResponse.status).json({
-        error: "Failed to create contact in GHL",
-        details: ghlData
+        error: "Failed to send to GHL webhook",
+        response: responseText
       });
     }
 
     return res.status(200).json({
       success: true,
-      contactId: ghlData.id || ghlData.contactId,
-      message: "Contact created successfully"
+      message: "Data sent to GHL webhook successfully"
     });
 
   } catch (error) {
