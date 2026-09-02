@@ -3,7 +3,6 @@
  * Envía los datos de la calculadora al Inbound Webhook de GHL
  * POST /api/create-contact
  */
-
 const GHL_WEBHOOK_URL = "https://services.leadconnectorhq.com/hooks/i5212YWibYHIjuUQVDQL/webhook-trigger/88faded6-d642-42e4-9fb5-871e2a542664";
 
 module.exports = async function handler(req, res) {
@@ -34,7 +33,8 @@ module.exports = async function handler(req, res) {
       "lostCalls": data.calculator?.lostCalls ?? "",
       "recoverable": data.calculator?.recoverable ?? "",
       "potentialMoney": data.calculator?.money ?? "",
-      "date": data.date || new Date().toISOString()
+      "date": data.date || new Date().toISOString(),
+      "tags": ["lead_magnet"]
     };
 
     console.log("📤 Enviando a GHL Webhook:", JSON.stringify(webhookPayload));
@@ -62,12 +62,5 @@ module.exports = async function handler(req, res) {
       success: true,
       message: "Data sent to GHL webhook successfully"
     });
-
   } catch (error) {
     console.error("❌ Error:", error);
-    return res.status(500).json({
-      error: "Internal server error",
-      message: error.message
-    });
-  }
-};
