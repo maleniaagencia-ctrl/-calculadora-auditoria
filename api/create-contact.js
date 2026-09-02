@@ -31,7 +31,7 @@ module.exports = async function handler(req, res) {
       "employees": data.employees || "",
       "role": data.role || "",
       "source": "calculadora_malenia",
-      "tags": "lead_magnet",
+      "etiquetas": "lead_magnet",
       "lostCalls": data.calculator?.lostCalls ?? "",
       "recoverable": data.calculator?.recoverable ?? "",
       "potentialMoney": data.calculator?.money ?? "",
