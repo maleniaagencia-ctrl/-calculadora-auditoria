@@ -71,3 +71,4 @@ module.exports = async function handler(req, res) {
     });
   }
 };
+Fix: GHL webhook field names now match workflow mapping (First Name, Last Name)
