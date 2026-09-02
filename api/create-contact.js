@@ -33,42 +33,4 @@ module.exports = async function handler(req, res) {
       "source": "calculadora_malenia",
       "lostCalls": data.calculator?.lostCalls ?? "",
       "recoverable": data.calculator?.recoverable ?? "",
-      "potentialMoney": data.calculator?.money ?? "",
-      "date": data.date || new Date().toISOString()
-    };
-
-    console.log("📤 Enviando a GHL Webhook:", JSON.stringify(webhookPayload));
-
-    const ghlResponse = await fetch(GHL_WEBHOOK_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(webhookPayload)
-    });
-
-    console.log("✅ GHL Webhook Status:", ghlResponse.status);
-    const responseText = await ghlResponse.text();
-    console.log("📦 GHL Webhook Response:", responseText);
-
-    if (!ghlResponse.ok) {
-      return res.status(ghlResponse.status).json({
-        error: "Failed to send to GHL webhook",
-        response: responseText
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Data sent to GHL webhook successfully"
-    });
-
-  } catch (error) {
-    console.error("❌ Error:", error);
-    return res.status(500).json({
-      error: "Internal server error",
-      message: error.message
-    });
-  }
-};
-Fix: GHL webhook field names now match workflow mapping (First Name, Last Name)
+      "potentialMoney":
