@@ -22,19 +22,19 @@ module.exports = async function handler(req, res) {
     const lastName = lastNameParts.join(" ") || "";
 
     const webhookPayload = {
-      FirstName: firstName,
-      LastName: lastName,
-      Email: data.email,
-      Phone: data.phone,
-      clinic: data.clinic,
-      city: data.city || "",
-      employees: data.employees || "",
-      role: data.role || "",
-      source: "calculadora_malenia",
-      lostCalls: data.calculator?.lostCalls ?? "",
-      recoverable: data.calculator?.recoverable ?? "",
-      potentialMoney: data.calculator?.money ?? "",
-      date: data.date || new Date().toISOString()
+      "First Name": firstName,
+      "Last Name": lastName,
+      "Email": data.email,
+      "Phone": data.phone,
+      "clinic": data.clinic,
+      "city": data.city || "",
+      "employees": data.employees || "",
+      "role": data.role || "",
+      "source": "calculadora_malenia",
+      "lostCalls": data.calculator?.lostCalls ?? "",
+      "recoverable": data.calculator?.recoverable ?? "",
+      "potentialMoney": data.calculator?.money ?? "",
+      "date": data.date || new Date().toISOString()
     };
 
     console.log("📤 Enviando a GHL Webhook:", JSON.stringify(webhookPayload));
