@@ -1,24 +1,25 @@
 {
-  "buildCommand": "true",
+  "buildCommand": "echo 'No build needed'",
   "outputDirectory": ".",
   "cleanUrls": true,
-  "headers": [
+  "rewrites": [
     {
       "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600"
-        },
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, OPTIONS"
-        }
-      ]
+      "destination": "/index.html"
+    }
+  ],
+  "encabezados": [
+    {
+      "llave": "Control de caché",
+      "valor": "público, edad máxima=3600"
+    },
+    {
+      "llave": "Control de acceso-Permitir-Origen",
+      "valor": "*"
+    },
+    {
+      "llave": "Métodos permitidos de control de acceso",
+      "valor": "OBTENER, PUBLICAR, OPCIONES"
     }
   ]
 }
