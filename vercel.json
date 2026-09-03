@@ -1,10 +1,24 @@
 {
-  "buildCommand": "echo 'No build needed'",
+  "buildCommand": "true",
   "outputDirectory": ".",
-  "rewrites": [
+  "cleanUrls": true,
+  "headers": [
     {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, OPTIONS"
+        }
+      ]
     }
   ]
 }
