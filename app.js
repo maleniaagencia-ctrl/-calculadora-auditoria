@@ -205,8 +205,12 @@ function calculate(){
   const digitalRecoverable=Math.round(unconvertedDigital*CONFIG.DIGITAL_RECOVERY_RATE);
   const recoverable=Math.max(0,Math.round((callOpportunities+digitalRecoverable)*CONFIG.RECOVERY_RATE));
   const money=Math.round(recoverable*state.patientValue);
+  
+  // ========== NUEVO: Calcular annualMoney ==========
+  const annualMoney = money * 12;
+  
   const attended=Math.max(0,state.leads-unconvertedDigital);
-  state.result={lostCalls,callOpportunities,digitalRecoverable,recoverable,money,attended};
+  state.result={lostCalls,callOpportunities,digitalRecoverable,recoverable,money,annualMoney,attended};
   $("calculator").classList.add("hidden");
   $("results").classList.remove("hidden");
   renderResults();
@@ -264,6 +268,7 @@ $("leadForm").addEventListener("submit", async e=>{
   const storageKey = `lead_${data.email}_${Date.now()}`;
   localStorage.setItem(storageKey, JSON.stringify(data));
   console.log("✅ Datos guardados en localStorage:", storageKey);
+  console.log("📊 Data enviada (incluye annualMoney):", data.calculator);
 
   // ========== ENVIAR A GHL CON ETIQUETA CORRECTA ==========
   try {
